@@ -21,6 +21,7 @@ import {
   rootCtx,
 } from '@milkdown/core';
 import { Ctx } from '@milkdown/ctx';
+import { history } from '@milkdown/plugin-history';
 import {
   listener,
   listenerCtx,
@@ -140,9 +141,18 @@ export class EditorComponent implements OnInit, OnChanges {
       });
     })
       .use(commonmark)
+      .use(history)
       .use(listener);
 
     this.editor.create();
   }
 
+  ngOnDestroy(): void {
+    this.content.unsubscribe();
+    this.valueChange.unsubscribe();
+
+    if (this.editor) {
+      this.editor.destroy();
+    }
+  }
 }
