@@ -1,0 +1,16 @@
+:host {
+  @apply relative mx-auto max-w-2xl cursor-text;
+}
+
+.editor {
+  @apply mx-auto prose cursor-text;
+
+
+
+  &.placeholder::before {
+    @apply absolute text-gray-400;
+
+    content: 'Laissez libre cours à votre imagination !';
+    pointer-events: none;
+  }
+}
