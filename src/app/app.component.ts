@@ -12,7 +12,10 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
-import { debounceTime } from 'rxjs';
+import {
+  debounceTime,
+  Subject,
+} from 'rxjs';
 
 import {
   LetDirective,
@@ -59,6 +62,7 @@ export class AppComponent implements OnInit {
 
   protected editing = false;
   protected loading = false;
+  protected createNew$ = new Subject<boolean>();
 
   form = new FormGroup({
     options: new FormArray<FormControl<{ content: ContentEntity; selected: boolean }>>([])
@@ -134,10 +138,22 @@ export class AppComponent implements OnInit {
     this.loading = true;
   }
 
+  protected createNew(): void {
+    if (this.editing) {
+      return;
+    }
+
+    this.createNew$.next(true);
+  }
+
   @HostListener('window:keydown', ['$event'])
   private onKeyDown(event: KeyboardEvent): void {
-    if (event.metaKey && event.key === 'o') {
-      console.log('open file')
+    if (event.key === 'Escape') {
+      this.editing = false;
+    }
+
+    if (event.ctrlKey && event.key === 'n') {
+      this.createNew();
     }
   }
 }

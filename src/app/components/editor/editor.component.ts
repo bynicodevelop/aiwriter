@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostListener,
   inject,
   Input,
   OnChanges,
@@ -13,6 +12,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
+
+import { of } from 'rxjs';
 
 import {
   defaultValueCtx,
@@ -59,18 +60,14 @@ export class EditorComponent implements OnInit, OnChanges {
     }
   }
 
+  @Input()
+  createNew$ = of(false);
+
   protected hasContent = false;
 
   private cdr = inject(ChangeDetectorRef);
   private editor!: Editor;
   private control = new FormControl();
-
-  @HostListener('window:keydown', ['$event'])
-  private onKeyDown(event: KeyboardEvent): void {
-    if (event.ctrlKey && event.key === 'n') {
-      this.control.setValue(this.createNewContent());
-    }
-  }
 
   private createNewContent(): ContentEntity {
     const date = new Date().getTime();
@@ -85,7 +82,13 @@ export class EditorComponent implements OnInit, OnChanges {
     };
   }
 
-  ngOnChanges(): void { }
+  ngOnChanges(): void {
+    this.createNew$.subscribe((createNew: boolean): void => {
+      if (createNew) {
+        this.control.setValue(this.createNewContent());
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.control.valueChanges.subscribe((content: ContentEntity): void => {
