@@ -131,6 +131,31 @@
             role="list"
             class="divide-y divide-gray-200"
           >
+            <li
+              class="group flex select-none items-center rounded-md hover:bg-gray-50 px-3 py-2 cursor-pointer"
+              (click)="createNew()"
+              [class]="{
+                'bg-gray-50': editing,
+              }"
+            >
+              <span
+                class="ml-3 flex-auto text-sm truncate text-gray-500"
+                [class]="{
+                'text-gray-400': editing,
+              }"
+                >+ Add new</span
+              >
+              <span
+                class="mr-1 flex-none text-sm text-gray-500"
+                [class]="{
+                'text-gray-400': editing,
+              }"
+              >
+                <kbd class="font-sans">Ctrl</kbd>
+                <kbd class="font-sans">+</kbd>
+                <kbd class="font-sans">N</kbd>
+              </span>
+            </li>
             @for(content of (form.value.options ?? [] | sort:
             'desc':'content.updatedAt' ); track content?.content?.uid; let i =
             $index) { @if(content?.content) {
@@ -172,7 +197,11 @@
 
   <main class="py-10 lg:pl-72">
     <div *ngrxLet="content$ as content" class="px-4 sm:px-6 lg:px-8">
-      <app-editor [value]="content!" (valueChange)="onValueChange($event)" />
+      <app-editor
+        [value]="content!"
+        [createNew$]="createNew$"
+        (valueChange)="onValueChange($event)"
+      />
     </div>
   </main>
 </div>
