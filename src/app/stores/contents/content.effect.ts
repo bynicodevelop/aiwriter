@@ -47,11 +47,13 @@ export class ContentEffects {
       return newContent;
     }),
     map((content: ContentEntity): ContentEntity => {
-      const contents = this.localStorageService.get('contents', '[]') ?? [];
+      let contents = this.localStorageService.get('contents', '[]') ?? [];
 
-      contents.forEach((c: ContentEntity) => {
-        c.selected = false;
-      });
+      contents = contents
+        .map((c: ContentEntity) => ({
+          ...c,
+          selected: false,
+        }));
 
       // S'il n'y a pas de contenu, on ajoute au tableau
       if (contents.length === 0) {
