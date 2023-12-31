@@ -10,9 +10,9 @@ import {
   OnChanges,
   OnInit,
   Output,
-  SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import { FormControl } from '@angular/forms';
 
 import {
   defaultValueCtx,
@@ -21,6 +21,7 @@ import {
   rootCtx,
 } from '@milkdown/core';
 import { Ctx } from '@milkdown/ctx';
+import { history } from '@milkdown/plugin-history';
 import {
   listener,
   listenerCtx,
@@ -45,28 +46,29 @@ import { ContentEntity } from '../../stores/contents/content.selectors';
   ],
 })
 export class EditorComponent implements OnInit, OnChanges {
-  @Input({
-    required: true,
-  }) defaultValue!: ContentEntity | undefined;
-
   @Input() placeholderContent = 'Entrez du texte ici...';
 
   @ViewChild('editorRef') editorRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('placeholder') placeholder!: ElementRef<HTMLDivElement>;
 
   @Output() valueChange = new EventEmitter<ContentEntity>();
 
-  protected content = new EventEmitter<ContentEntity>();
+  @Input()
+  set value(content: ContentEntity) {
+    if (this.control.value?.uid !== content.uid) {
+      this.control.setValue(content);
+    }
+  }
+
   protected hasContent = false;
 
   private cdr = inject(ChangeDetectorRef);
-
   private editor!: Editor;
+  private control = new FormControl();
 
   @HostListener('window:keydown', ['$event'])
   private onKeyDown(event: KeyboardEvent): void {
     if (event.ctrlKey && event.key === 'n') {
-      this.content.emit(this.createNewContent());
+      this.control.setValue(this.createNewContent());
     }
   }
 
@@ -83,31 +85,22 @@ export class EditorComponent implements OnInit, OnChanges {
     };
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['defaultValue'] && changes['defaultValue'].currentValue?.uid !== changes['defaultValue'].previousValue?.uid) {
-      this.content.emit(changes['defaultValue'].currentValue ?? this.createNewContent());
-    }
-  }
+  ngOnChanges(): void { }
 
   ngOnInit(): void {
-    this.content.subscribe((content): void => {
+    this.control.valueChanges.subscribe((content: ContentEntity): void => {
       if (this.editor) {
         this.editor.destroy();
       }
 
       this.setEditorContent(content ?? this.createNewContent());
-
-      this.hasContent = content.content.length > 0;
-    });
-
-    this.valueChange.subscribe((content): void => {
-      this.hasContent = content.content.length > 0;
     })
   }
 
   ngAfterViewInit(): void {
     if (!this.editor) {
-      this.content.emit(this.defaultValue ?? this.createNewContent());
+      this.setEditorContent(this.control.value ?? this.createNewContent());
+
       this.cdr.detectChanges();
     }
   }
@@ -117,12 +110,16 @@ export class EditorComponent implements OnInit, OnChanges {
       ctx.set(rootCtx, this.editorRef.nativeElement);
       ctx.set(defaultValueCtx, contentEntity.content);
 
+      this.hasContent = contentEntity.content.length > 0;
+
       ctx.update(editorViewOptionsCtx, (prev) => ({
         ...prev,
         attributes: { class: 'mx-auto outline-none prose pb-20 cursor-text', spellcheck: 'false' },
       }))
 
       ctx.get(listenerCtx).markdownUpdated((_ctx, markdown, _prevMarkdown): void => {
+        this.hasContent = markdown.length > 0;
+
         this.valueChange.emit({
           ...contentEntity,
           content: markdown,
@@ -140,9 +137,18 @@ export class EditorComponent implements OnInit, OnChanges {
       });
     })
       .use(commonmark)
+      .use(history)
       .use(listener);
 
     this.editor.create();
   }
 
+  ngOnDestroy(): void {
+    this.valueChange.unsubscribe();
+    this.cdr.detach();
+
+    if (this.editor) {
+      this.editor.destroy();
+    }
+  }
 }

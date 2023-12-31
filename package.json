@@ -20,6 +20,7 @@
     "@angular/router": "^17.0.0",
     "@milkdown/core": "^7.3.3",
     "@milkdown/ctx": "^7.3.3",
+    "@milkdown/plugin-history": "^7.3.3",
     "@milkdown/plugin-listener": "^7.3.3",
     "@milkdown/plugin-slash": "^7.3.3",
     "@milkdown/preset-commonmark": "^7.3.3",

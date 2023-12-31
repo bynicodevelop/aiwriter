@@ -55,7 +55,7 @@
           </button>
         </div>
 
-        <!-- <div
+        <div
           *ngrxLet="contents$ as contents"
           class="flex grow flex-col gap-y-5 overflow-y-auto bg-white pb-2"
         >
@@ -67,30 +67,34 @@
                 role="list"
                 class="divide-y divide-gray-200"
               >
-                @for (content of (contents | sort:'desc':'updatedAt'); track
-                content.uid; let i = $index) {
+                @for(content of (form.value.options ?? [] | sort:
+                'desc':'content.updatedAt' ); track content?.content?.uid; let i
+                = $index) { @if(content?.content) {
                 <li
                   class="flex justify-between px-4 py-4 hover:bg-gray-50 cursor-pointer"
-                  (click)="onSelectContent(content)"
+                  (click)="onSelectContent(content?.content!)"
                   longPress
                   (mouseLongPress)="longPress()"
                 >
                   <app-item
                     class="overflow-auto"
-                    [title]="content['title']"
-                    [previewContent]="content['content']"
+                    [title]="(content?.content)!['title']"
+                    [previewContent]="(content?.content)!['content']"
                   />
 
+                  @if(editing$ |ngrxPush) {
                   <input
-                    [formControlName]="i"
                     [id]="'item-' + i"
                     [name]="'item-' + i"
+                    [checked]="content?.selected"
+                    [disabled]="loading$ | ngrxPush"
+                    (change)="toggleSelection(content?.content!)"
                     type="checkbox"
-                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                    [value]="content"
+                    class="ml-2 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                   />
+                  }
                 </li>
-                }
+                } }
               </ul>
             </form>
           </nav>
@@ -99,7 +103,7 @@
             <p class="text-gray-500">No content</p>
           </div>
           }
-        </div> -->
+        </div>
       </div>
     </div>
   </div>
@@ -168,10 +172,7 @@
 
   <main class="py-10 lg:pl-72">
     <div *ngrxLet="content$ as content" class="px-4 sm:px-6 lg:px-8">
-      <app-editor
-        [defaultValue]="content"
-        (valueChange)="onValueChange($event)"
-      />
+      <app-editor [value]="content!" (valueChange)="onValueChange($event)" />
     </div>
   </main>
 </div>

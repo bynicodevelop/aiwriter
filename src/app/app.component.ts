@@ -75,7 +75,7 @@ export class AppComponent implements OnInit {
 
     this.contents$
       .pipe(
-        debounceTime(1000),
+        debounceTime(300),
       )
       .subscribe((contents): void => {
         // Si le nombre de contenus a changé, on réinitialise le formulaire
