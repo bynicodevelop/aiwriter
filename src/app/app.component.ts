@@ -12,10 +12,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
-import {
-  debounceTime,
-  of,
-} from 'rxjs';
+import { debounceTime } from 'rxjs';
 
 import {
   LetDirective,
@@ -60,14 +57,11 @@ export class AppComponent implements OnInit {
   protected contents$ = this.contentFacade.contents$;
   protected content$ = this.contentFacade.content$;
 
-  protected editing$ = of(false);
-  protected loading$ = of(false);
+  protected editing = false;
+  protected loading = false;
 
   form = new FormGroup({
-    options: new FormArray<FormControl<{
-      content: ContentEntity;
-      selected: boolean;
-    } | null>>([])
+    options: new FormArray<FormControl<{ content: ContentEntity; selected: boolean }>>([])
   });
 
   ngOnInit(): void {
@@ -80,9 +74,9 @@ export class AppComponent implements OnInit {
       .subscribe((contents): void => {
         // Si le nombre de contenus a changé, on réinitialise le formulaire
         if (contents.length !== this.form.controls.options.value.length) {
-          this.editing$ = of(false);
-          this.loading$ = of(false);
-          this.form.controls.options.reset();
+          this.editing = false;
+          this.loading = false;
+          this.form.controls.options.clear();
         }
 
         contents.forEach((content): void => {
@@ -90,15 +84,21 @@ export class AppComponent implements OnInit {
           const existingControl = this.form.controls.options.value.find((option): boolean => option?.content.uid === content.uid);
 
           if (existingControl) {
-            // Si un contenu est présent dans le tableau et dans le formulaire, on ne fait rien
+            // Si un contenu est présent dans le tableau et dans le formulaire, on met à jour la liste des controls form
+            this.form.controls.options.value.forEach((option): void => {
+              if (option?.content.uid === content.uid) {
+                option.content = content;
+              }
+            });
+
             return;
           }
 
           this.form.controls.options.push(
             new FormControl({
-              content,
-              selected: false,
-            })
+              content: content,
+              selected: false
+            }) as FormControl<{ content: ContentEntity; selected: boolean }>
           );
         });
       })
@@ -113,7 +113,7 @@ export class AppComponent implements OnInit {
   }
 
   protected longPress(): void {
-    this.editing$ = of(true);
+    this.editing = true;
   }
 
   protected toggleSelection(content: ContentEntity): void {
@@ -127,11 +127,11 @@ export class AppComponent implements OnInit {
   protected deleteItem(): void {
     const listOfContents = this.form.controls.options.value
       .filter((option): boolean => option?.selected === true)
-      .map((option): ContentEntity => option?.content as ContentEntity);
+      .map((option): ContentEntity => option?.content);
 
     this.contentFacade.deleteContent(listOfContents);
 
-    this.loading$ = of(true);
+    this.loading = true;
   }
 
   @HostListener('window:keydown', ['$event'])

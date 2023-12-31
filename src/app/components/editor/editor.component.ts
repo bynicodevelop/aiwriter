@@ -54,7 +54,7 @@ export class EditorComponent implements OnInit, OnChanges {
 
   @Input()
   set value(content: ContentEntity) {
-    if (this.control.value?.uid !== content.uid) {
+    if (this.control.value?.uid !== content?.uid) {
       this.control.setValue(content);
     }
   }
