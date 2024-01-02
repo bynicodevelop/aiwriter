@@ -62,6 +62,7 @@ export class AppComponent implements OnInit {
 
   protected editing = false;
   protected loading = false;
+  protected hiddenList = true;
   protected createNew$ = new Subject<boolean>();
 
   form = new FormGroup({
@@ -154,6 +155,10 @@ export class AppComponent implements OnInit {
 
     if (event.ctrlKey && event.key === 'n') {
       this.createNew();
+    }
+
+    if (event.ctrlKey && event.key === 'l') {
+      this.hiddenList = !this.hiddenList;
     }
   }
 }
